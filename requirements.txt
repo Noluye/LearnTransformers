@@ -1,2 +1,3 @@
 transformers==4.27.2
 sentencepiece==0.1.97
+tensorflow==2.10.1
