@@ -7,11 +7,13 @@
 """
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
 
 print(tf.__version__)
 print(f"Num GPUs Available: {tf.config.list_physical_devices('GPU')}")
-exit(0)
 
+
+# exit(0)
 
 def create_const_tensor(data):
     tensor = tf.constant(data)
@@ -155,6 +157,7 @@ if __name__ == '__main__':
     print(tf.math.argmax(x))  # tf.Tensor(4, shape=(), dtype=int64)
     print(x[tf.math.argmax(x)])  # tf.Tensor(14, shape=(), dtype=int32)
 
+    # aggregation
     print(tf.math.reduce_sum(x))  # tf.Tensor(60, shape=(), dtype=int32)
     print(tf.math.reduce_max(x))  # tf.Tensor(14, shape=(), dtype=int32)
     print(tf.math.reduce_mean(x))  # tf.Tensor(12, shape=(), dtype=int32)
@@ -171,43 +174,7 @@ if __name__ == '__main__':
     #        [2]])>)
 
     # ------------------------------------------------------
-    # matrix
-    x1 = tf.constant([[1, 2], [3, 4]])
-    x2 = tf.constant([[1, 0], [0, 1]])
-    print(tf.linalg.matmul(x1, x2))
-    print(x1 @ x2)
-    # tf.Tensor(
-    # [[1 2]
-    #  [3 4]], shape=(2, 2), dtype=int32)
-    print(tf.transpose(x1))
-    # [[1 2]
-    #  [3 4]], shape=(2, 2), dtype=int32)
-    print(tf.linalg.band_part(x1, 0, -1))
-    # tf.Tensor(
-    # [[1 2]
-    #  [0 4]], shape=(2, 2), dtype=int32)
-    print(tf.linalg.band_part(x1, -1, 0))
-    # tf.Tensor(
-    # [[1 0]
-    #  [3 4]], shape=(2, 2), dtype=int32)
-    print(tf.linalg.band_part(x1, 0, 0))
-    # tf.Tensor(
-    # [[1 0]
-    #  [0 4]], shape=(2, 2), dtype=int32)
-    x1 = tf.cast(x1, dtype=tf.float32)
-    print(tf.linalg.inv(x1))
-    # tf.Tensor(
-    # [[-2.0000002   1.0000001 ]
-    #  [ 1.5000001  -0.50000006]], shape=(2, 2), dtype=float32)
-    s, u, v = tf.linalg.svd(x1)
 
-    x1 = tf.constant([[1, 2, 3], [4, 5, 6]])
-    x2 = tf.constant([[1, 2], [3, 4], [5, 6]])
-    print(tf.einsum('ij,jk->ik', x1, x2))
-    # tf.Tensor(
-    # [[22 28]
-    #  [49 64]], shape=(2, 2), dtype=int32)
-    # ------------------------------------------------------
     # new axis / squeeze
     x = tf.constant([1, 2, 3])
     print(x[tf.newaxis, ...])  # tf.Tensor([[1 2 3]], shape=(1, 3), dtype=int32)
@@ -281,7 +248,74 @@ if __name__ == '__main__':
     with tf.device('GPU:0'):
         x_var = tf.Variable(0.2)
         x_con = tf.constant(0.2)
-    print(x_var)
-    print(x_var.device)
-    print(x_con)
-    print(x_con.device)
+    print(x_var)  # <tf.Variable 'Variable:0' shape=() dtype=float32, numpy=0.2>
+    print(x_var.device)  # /job:localhost/replica:0/task:0/device:GPU:0
+    print(x_con)  # tf.Tensor(0.2, shape=(), dtype=float32)
+    print(x_con.device)  # /job:localhost/replica:0/task:0/device:GPU:0
+
+    with tf.device('CPU:0'):
+        x = tf.Variable(1.0)
+    print(x.device)  # /job:localhost/replica:0/task:0/device:CPU:0
+    # ------------------------------------------------------
+    # matrix
+    x1 = tf.constant([[1, 2], [3, 4]])
+    x2 = tf.constant([[1, 0], [0, 1]])
+    print(tf.linalg.matmul(x1, x2))
+    print(x1 @ x2)
+    # tf.Tensor(
+    # [[1 2]
+    #  [3 4]], shape=(2, 2), dtype=int32)
+    print(tf.transpose(x1))
+    # [[1 2]
+    #  [3 4]], shape=(2, 2), dtype=int32)
+    print(tf.linalg.band_part(x1, 0, -1))
+    # tf.Tensor(
+    # [[1 2]
+    #  [0 4]], shape=(2, 2), dtype=int32)
+    print(tf.linalg.band_part(x1, -1, 0))
+    # tf.Tensor(
+    # [[1 0]
+    #  [3 4]], shape=(2, 2), dtype=int32)
+    print(tf.linalg.band_part(x1, 0, 0))
+    # tf.Tensor(
+    # [[1 0]
+    #  [0 4]], shape=(2, 2), dtype=int32)
+    x1 = tf.cast(x1, dtype=tf.float32)
+    print(tf.linalg.inv(x1))
+    # tf.Tensor(
+    # [[-2.0000002   1.0000001 ]
+    #  [ 1.5000001  -0.50000006]], shape=(2, 2), dtype=float32)
+    s, u, v = tf.linalg.svd(x1)
+
+    x1 = tf.constant([[1, 2, 3], [4, 5, 6]])
+    x2 = tf.constant([[1, 2], [3, 4], [5, 6]])
+    print(tf.einsum('ij,jk->ik', x1, x2))
+    # tf.Tensor(
+    # [[22 28]
+    #  [49 64]], shape=(2, 2), dtype=int32)
+
+    x1 = tf.constant([1., 2., 3.])
+    x2 = tf.constant([1., 1., 1.])
+    print(tf.tensordot(x1, x2, axes=1))  # tf.Tensor(6.0, shape=(), dtype=float32)
+    # ------------------------------------------------------
+    x = tf.constant([1, 2, 3, 4], dtype=tf.float16)
+    print(tfp.stats.variance(x))  # tf.Tensor(1.25, shape=(), dtype=float16)
+    print(tf.math.reduce_std(x))  # tf.Tensor(1.118, shape=(), dtype=float16)
+    print(tf.math.reduce_variance(x))  # tf.Tensor(1.25, shape=(), dtype=float16)
+
+    # one-hot encoding
+    x = [0, 1, 2, 3]  # red, green, blue, purple
+    print(tf.one_hot(x, len(x)))
+    # tf.Tensor(
+    # [[1. 0. 0. 0.]
+    #  [0. 1. 0. 0.]
+    #  [0. 0. 1. 0.]
+    #  [0. 0. 0. 1.]], shape=(4, 4), dtype=float32)
+
+    x = tf.constant([0, 1, 2, 3], dtype=tf.float16)
+    print(tf.square(x))  # tf.Tensor([0. 1. 4. 9.], shape=(4,), dtype=float16)
+    print(tf.sqrt(x))  # tf.Tensor([0.    1.    1.414 1.732], shape=(4,), dtype=float16)
+    print(tf.math.log(x))  # tf.Tensor([  -inf 0.     0.6934 1.099 ], shape=(4,), dtype=float16)
+
+    print(tf.config.list_physical_devices())
+    # [PhysicalDevice(name='/physical_device:CPU:0', device_type='CPU'), PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
