@@ -60,3 +60,29 @@ if __name__ == '__main__':
     # bag of words
     # tf-idf
     # embeddings
+
+    VOCAB_SIZE = 10000
+    SEQUENCE_LENGTH = 200
+    vectorize_layer = tf.keras.layers.TextVectorization(
+        standardize=standardization,
+        max_tokens=VOCAB_SIZE,
+        output_mode='int',
+        output_sequence_length=SEQUENCE_LENGTH
+    )
+
+    training_data = train_ds.map(lambda x, y: x)  # input x and y and outputx
+    vectorize_layer.adapt(training_data)  # adapt the vectorize_layer to the training data
+
+
+    # print(len(vectorize_layer.get_vocabulary())) # 10000
+
+    def vectorizer(review, label):
+        return vectorize_layer(review), label
+
+
+    training_dataset = train_ds.map(vectorizer)
+    val_dataset = val_ds.map(vectorizer)
+
+    for review, label in training_dataset.take(1):
+        print(review)
+        print(label)
