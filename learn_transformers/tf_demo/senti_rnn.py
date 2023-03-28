@@ -7,7 +7,13 @@
 """
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import Sequential
 
+# Simple RNN1
+
+# Simple RNN2: all states，并没有提升
+
+# LSTM
 
 # batch, sequence, vocabulary
 inputs = np.random.random([32, 10, 8]).astype(np.float32)
